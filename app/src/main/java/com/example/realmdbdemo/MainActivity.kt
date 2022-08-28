@@ -1,46 +1,58 @@
 package com.example.realmdbdemo
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.realmdbdemo.BookDatabase.Companion.realm
 import com.example.realmdbdemo.databinding.ActivityMainBinding
-import io.realm.kotlin.Realm
-import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
-import io.realm.kotlin.query.RealmResults
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var realm: Realm
+    private lateinit var adapter: BookAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val config = RealmConfiguration.Builder(schema = setOf(Book::class))
-            .build()
-        realm = Realm.open(config)
         initOnClick()
+        initRc()
+    }
+
+    private fun initRc() {
+        adapter = BookAdapter(onClickItem = onClickItem(), onLongClick = onLongClick())
+        adapter.submitData(getAllData())
+        binding.rcBook.adapter = adapter
+    }
+
+    private fun onClickItem(): (Long) -> Unit = {
+        var intent = Intent(this, EditActivity::class.java)
+        intent.putExtra("ID_EDIT", it)
+        startActivity(intent)
+    }
+
+    private fun onLongClick(): (Long) -> Unit = {
+        lifecycleScope.launch(Dispatchers.IO) {
+            realm.write {
+                val book = this.query<Book>("id== $it").find().first()
+                delete(book)
+            }
+        }
     }
 
     private fun initOnClick() {
         binding.btnAdd.setOnClickListener {
-            realm.writeBlocking {
-                copyToRealm(Book().apply {
-                    name = "abc"
-                    author = "Quan"
-                })
-            }
+            val intent = Intent(this, AddActivity::class.java)
+            startActivity(intent)
         }
         binding.btnGetData.setOnClickListener {
             getAllData()
         }
     }
 
-
-    private fun getAllData() {
-        val books: RealmResults<Book> = realm.query<Book>().find()
-        books.forEach {
-            Log.d("iamquan1705", it.name)
-        }
+    private fun getAllData(): List<Book> {
+        return realm.query<Book>().find()
     }
 }

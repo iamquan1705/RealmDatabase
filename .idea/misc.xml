@@ -3,7 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Admin/Desktop/QUANANDROID/RealmDbDemo/app/src/main/res/layout/activity_add.xml" value="0.22" />
+        <entry key="..\:/Users/Admin/Desktop/QUANANDROID/RealmDbDemo/app/src/main/res/layout/activity_edit.xml" value="0.2391304347826087" />
         <entry key="..\:/Users/Admin/Desktop/QUANANDROID/RealmDbDemo/app/src/main/res/layout/activity_main.xml" value="0.18" />
+        <entry key="..\:/Users/Admin/Desktop/QUANANDROID/RealmDbDemo/app/src/main/res/layout/dialog_book.xml" value="0.17831813576494426" />
+        <entry key="..\:/Users/Admin/Desktop/QUANANDROID/RealmDbDemo/app/src/main/res/layout/item_book.xml" value="0.25" />
       </map>
     </option>
   </component>
