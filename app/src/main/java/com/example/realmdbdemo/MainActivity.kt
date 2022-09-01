@@ -9,10 +9,12 @@ import com.example.realmdbdemo.databinding.ActivityMainBinding
 import io.realm.kotlin.ext.query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: BookAdapter
+    private lateinit var dialogDelete: DeleteDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -28,18 +30,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onClickItem(): (Long) -> Unit = {
-        var intent = Intent(this, EditActivity::class.java)
+        val intent = Intent(this, EditActivity::class.java)
         intent.putExtra("ID_EDIT", it)
         startActivity(intent)
     }
 
-    private fun onLongClick(): (Long) -> Unit = {
-        lifecycleScope.launch(Dispatchers.IO) {
-            realm.write {
-                val book = this.query<Book>("id== $it").find().first()
-                delete(book)
+    private fun onLongClick(): (Long) -> Unit = { id ->
+        dialogDelete = DeleteDialog(this, onCLickDelete = {
+            lifecycleScope.launch(Dispatchers.IO) {
+                realm.write {
+                    val book = this.query<Book>("id== $id").find().first()
+                    delete(book)
+                }
+                withContext(Dispatchers.Main) {
+                    adapter.submitData(getAllData())
+                    adapter.notifyDataSetChanged()
+                }
             }
-        }
+        })
+        dialogDelete.show()
     }
 
     private fun initOnClick() {
@@ -48,11 +57,20 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
         binding.btnGetData.setOnClickListener {
-            getAllData()
+            adapter.submitData(getAllData())
+            adapter.notifyDataSetChanged()
         }
     }
 
     private fun getAllData(): List<Book> {
         return realm.query<Book>().find()
     }
+
+
+    override fun onResume() {
+        super.onResume()
+        adapter.submitData(getAllData())
+        adapter.notifyDataSetChanged()
+    }
+
 }
